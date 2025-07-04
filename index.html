@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodTunes - Your Mood, Your Music</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .mood-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mood-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mood-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--mood-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mood-card:hover::before {
+            opacity: 0.3;
+        }
+
+        .mood-card * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mood-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .mood-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .mood-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .playlist-section {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 40px;
+            animation: fadeIn 0.5s ease-out;
+            display: none;
+        }
+
+        .playlist-section.active {
+            display: block;
+        }
+
+        .playlist-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .playlist-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .playlist-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .playlist-card:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .playlist-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .playlist-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .playlist-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .play-button {
+            background: #1db954;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .play-button:hover {
+            background: #1ed760;
+            transform: scale(1.05);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .back-button.active {
+            display: block;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .favorites-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .favorites-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .favorites-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .favorites-button.active {
+            background: #1db954;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .mood-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .playlist-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mood-specific gradients */
+        .mood-happy::before {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+        }
+
+        .mood-energetic::before {
+            background: linear-gradient(135deg, #fa709a, #fee140);
+        }
+
+        .mood-chill::before {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+        }
+
+        .mood-focus::before {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .mood-sad::before {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .mood-party::before {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+        }
+
+        .mood-romantic::before {
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+        }
+
+        .mood-workout::before {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="goBack()">← Back to Moods</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>MoodTunes</h1>
+            <p>Discover the perfect music for every moment</p>
+        </div>
+
+        <div class="mood-selection" id="moodSelection">
+            <div class="mood-grid">
+                <div class="mood-card mood-happy" onclick="selectMood('happy')">
+                    <span class="mood-icon">😊</span>
+                    <h3 class="mood-name">Happy</h3>
+                    <p class="mood-description">Upbeat tracks to brighten your day</p>
+                </div>
+                <div class="mood-card mood-energetic" onclick="selectMood('energetic')">
+                    <span class="mood-icon">⚡</span>
+                    <h3 class="mood-name">Energetic</h3>
+                    <p class="mood-description">High-energy music to pump you up</p>
+                </div>
+                <div class="mood-card mood-chill" onclick="selectMood('chill')">
+                    <span class="mood-icon">😌</span>
+                    <h3 class="mood-name">Chill</h3>
+                    <p class="mood-description">Relaxing vibes for unwinding</p>
+                </div>
+                <div class="mood-card mood-focus" onclick="selectMood('focus')">
+                    <span class="mood-icon">🎯</span>
+                    <h3 class="mood-name">Focus</h3>
+                    <p class="mood-description">Concentration-boosting soundtracks</p>
+                </div>
+                <div class="mood-card mood-sad" onclick="selectMood('sad')">
+                    <span class="mood-icon">😢</span>
+                    <h3 class="mood-name">Melancholy</h3>
+                    <p class="mood-description">Emotional tracks for reflection</p>
+                </div>
+                <div class="mood-card mood-party" onclick="selectMood('party')">
+                    <span class="mood-icon">🎉</span>
+                    <h3 class="mood-name">Party</h3>
+                    <p class="mood-description">Dance hits for celebrations</p>
+                </div>
+                <div class="mood-card mood-romantic" onclick="selectMood('romantic')">
+                    <span class="mood-icon">💕</span>
+                    <h3 class="mood-name">Romantic</h3>
+                    <p class="mood-description">Love songs for special moments</p>
+                </div>
+                <div class="mood-card mood-workout" onclick="selectMood('workout')">
+                    <span class="mood-icon">💪</span>
+                    <h3 class="mood-name">Workout</h3>
+                    <p class="mood-description">Pump-up tracks for exercise</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="playlist-section" id="playlistSection">
+            <div class="playlist-header">
+                <h2 id="moodTitle">Happy Music</h2>
+                <p>Perfect playlists for your mood</p>
+            </div>
+            <div class="playlist-grid" id="playlistGrid">
+                <!-- Playlists will be populated here -->
+            </div>
+        </div>
+
+        <div class="favorites-section">
+            <button class="favorites-button" onclick="toggleFavorites()">❤️ My Favorites</button>
+            <button class="favorites-button" onclick="sharePlaylist()">📱 Share</button>
+        </div>
+    </div>
+
+    <script>
+        // Mock playlist data (in real app, this would come from Spotify API)
+        const playlistData = {
+            happy: [
+                {
+                    name: "Feel Good Hits",
+                    description: "Upbeat songs to lift your spirits",
+                    icon: "🌟",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0",
+                    color: "linear-gradient(135deg, #ff9a9e, #fecfef)"
+                },
+                {
+                    name: "Sunny Day Vibes",
+                    description: "Perfect for a bright day",
+                    icon: "☀️",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DXdPec7aLTmlC",
+                    color: "linear-gradient(135deg, #ffeaa7, #fab1a0)"
+                },
+                {
+                    name: "Good Vibes Only",
+                    description: "Positive energy all day",
+                    icon: "✨",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd",
+                    color: "linear-gradient(135deg, #fd79a8, #fdcb6e)"
+                }
+            ],
+            energetic: [
+                {
+                    name: "Power Hour",
+                    description: "High-energy tracks for maximum motivation",
+                    icon: "⚡",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP",
+                    color: "linear-gradient(135deg, #fa709a, #fee140)"
+                },
+                {
+                    name: "Adrenaline Rush",
+                    description: "Get your heart pumping",
+                    icon: "🚀",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ",
+                    color: "linear-gradient(135deg, #ff6b6b, #4ecdc4)"
+                },
+                {
+                    name: "Beast Mode",
+                    description: "Unleash your inner beast",
+                    icon: "🔥",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX4eRPd9frC1m",
+                    color: "linear-gradient(135deg, #ff416c, #ff4b2b)"
+                }
+            ],
+            chill: [
+                {
+                    name: "Chill Lounge",
+                    description: "Relaxing beats for unwinding",
+                    icon: "🌙",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
+                    color: "linear-gradient(135deg, #a8edea, #fed6e3)"
+                },
+                {
+                    name: "Peaceful Piano",
+                    description: "Calming instrumental music",
+                    icon: "🎹",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO",
+                    color: "linear-gradient(135deg, #d299c2, #fef9d7)"
+                },
+                {
+                    name: "Sunset Vibes",
+                    description: "Perfect for golden hour",
+                    icon: "🌅",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX13ZzXoot6Jc",
+                    color: "linear-gradient(135deg, #fad0c4, #ffd1ff)"
+                }
+            ],
+            focus: [
+                {
+                    name: "Deep Focus",
+                    description: "Concentration-enhancing instrumentals",
+                    icon: "🎯",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ",
+                    color: "linear-gradient(135deg, #667eea, #764ba2)"
+                },
+                {
+                    name: "Study Beats",
+                    description: "Lo-fi hip hop for productivity",
+                    icon: "📚",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd",
+                    color: "linear-gradient(135deg, #89f7fe, #66a6ff)"
+                },
+                {
+                    name: "Brain Food",
+                    description: "Music for mental clarity",
+                    icon: "🧠",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO",
+                    color: "linear-gradient(135deg, #c2e9fb, #a1c4fd)"
+                }
+            ],
+            sad: [
+                {
+                    name: "Melancholy Mood",
+                    description: "Emotional tracks for reflection",
+                    icon: "🌧️",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX3YSRoSdA634",
+                    color: "linear-gradient(135deg, #4facfe, #00f2fe)"
+                },
+                {
+                    name: "Rainy Day Blues",
+                    description: "Songs for contemplative moments",
+                    icon: "☔",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX7qK8ma5wgG1",
+                    color: "linear-gradient(135deg, #a8caba, #5d4e75)"
+                },
+                {
+                    name: "Healing Hearts",
+                    description: "Music for emotional healing",
+                    icon: "💙",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX59NCqCqJtoH",
+                    color: "linear-gradient(135deg, #667db6, #0082c8)"
+                }
+            ],
+            party: [
+                {
+                    name: "Dance Party",
+                    description: "Get the party started",
+                    icon: "🕺",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX0BcQWzuB7ZO",
+                    color: "linear-gradient(135deg, #ff6b6b, #feca57)"
+                },
+                {
+                    name: "Club Bangers",
+                    description: "The hottest club hits",
+                    icon: "🎪",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DXaXB8fQg7xif",
+                    color: "linear-gradient(135deg, #ff9068, #fd746c)"
+                },
+                {
+                    name: "Weekend Vibes",
+                    description: "Perfect for celebrations",
+                    icon: "🎊",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX2L0iB23Enbq",
+                    color: "linear-gradient(135deg, #f093fb, #f5576c)"
+                }
+            ],
+            romantic: [
+                {
+                    name: "Love Songs",
+                    description: "Classic romantic ballads",
+                    icon: "💕",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX6mvEU1S6INL",
+                    color: "linear-gradient(135deg, #ff758c, #ff7eb3)"
+                },
+                {
+                    name: "Date Night",
+                    description: "Perfect for intimate moments",
+                    icon: "🌹",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX4UtSsGT1Sbe",
+                    color: "linear-gradient(135deg, #f093fb, #f5576c)"
+                },
+                {
+                    name: "Soulmate Serenades",
+                    description: "Songs for your special someone",
+                    icon: "💖",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX2Nc3B70tvx0",
+                    color: "linear-gradient(135deg, #ffecd2, #fcb69f)"
+                }
+            ],
+            workout: [
+                {
+                    name: "Gym Motivation",
+                    description: "High-energy workout tracks",
+                    icon: "🏋️",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP",
+                    color: "linear-gradient(135deg, #ff416c, #ff4b2b)"
+                },
+                {
+                    name: "Cardio Blast",
+                    description: "Perfect for running and cardio",
+                    icon: "🏃",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DX4eRPd9frC1m",
+                    color: "linear-gradient(135deg, #fa709a, #fee140)"
+                },
+                {
+                    name: "Strength Training",
+                    description: "Power through your lifts",
+                    icon: "💪",
+                    url: "https://open.spotify.com/playlist/37i9dQZF1DXdxcBWuJkbcy",
+                    color: "linear-gradient(135deg, #f093fb, #f5576c)"
+                }
+            ]
+        };
+
+        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        let currentMood = '';
+
+        function selectMood(mood) {
+            currentMood = mood;
+            document.getElementById('moodSelection').style.display = 'none';
+            document.getElementById('playlistSection').style.display = 'block';
+            document.querySelector('.back-button').classList.add('active');
+            
+            // Update mood title
+            const moodTitle = document.getElementById('moodTitle');
+            moodTitle.textContent = mood.charAt(0).toUpperCase() + mood.slice(1) + ' Music';
+            
+            // Update background gradient based on mood
+            updateBackgroundForMood(mood);
+            
+            // Display playlists for this mood
+            displayPlaylists(mood);
+        }
+
+        function updateBackgroundForMood(mood) {
+            const body = document.body;
+            const gradients = {
+                happy: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                energetic: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                chill: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                focus: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                sad: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                party: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)',
+                romantic: 'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)',
+                workout: 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)'
+            };
+            
+            body.style.background = gradients[mood] || gradients.focus;
+        }
+
+        function displayPlaylists(mood) {
+            const playlistGrid = document.getElementById('playlistGrid');
+            const playlists = playlistData[mood] || [];
+            
+            playlistGrid.innerHTML = '';
+            
+            playlists.forEach(playlist => {
+                const playlistCard = document.createElement('div');
+                playlistCard.className = 'playlist-card';
+                playlistCard.innerHTML = `
+                    <div class="playlist-image" style="background: ${playlist.color}">
+                        <span>${playlist.icon}</span>
+                    </div>
+                    <h3 class="playlist-name">${playlist.name}</h3>
+                    <p class="playlist-description">${playlist.description}</p>
+                    <button class="play-button" onclick="playPlaylist('${playlist.url}')">Play on Spotify</button>
+                    <button class="favorites-button" onclick="addToFavorites('${playlist.name}', '${mood}')" style="margin-left: 10px;">
+                        ${favorites.find(f => f.name === playlist.name) ? '❤️' : '🤍'}
+                    </button>
+                `;
+                playlistGrid.appendChild(playlistCard);
+            });
+        }
+
+        function playPlaylist(url) {
+            window.open(url, '_blank');
+        }
+
+        function addToFavorites(playlistName, mood) {
+            const existingIndex = favorites.findIndex(f => f.name === playlistName);
+            
+            if (existingIndex > -1) {
+                favorites.splice(existingIndex, 1);
+            } else {
+                favorites.push({ name: playlistName, mood: mood });
+            }
+            
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            displayPlaylists(currentMood); // Refresh to update heart icons
+        }
+
+        function toggleFavorites() {
+            if (favorites.length === 0) {
+                alert('You haven\'t added any favorites yet!');
+                return;
+            }
+            
+            alert('Favorites: ' + favorites.map(f => f.name).join(', '));
+        }
+
+        function sharePlaylist() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'MoodTunes - Perfect Music for Every Mood',
+                    text: 'Check out this amazing mood-based music generator!',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+            }
+        }
+
+        function goBack() {
+            document.getElementById('moodSelection').style.display = 'block';
+            document.getElementById('playlistSection').style.display = 'none';
+            document.querySelector('.back-button').classList.remove('active');
+            
+            // Reset background
+            document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some initial animations
+            setTimeout(() => {
+                document.querySelector('.header').style.transform = 'translateY(0)';
+                document.querySelector('.mood-grid').style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
